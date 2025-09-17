@@ -37,4 +37,3 @@ flowchart LR
     U -- fetch/checkout --> L[로컬 저장소<br/>(local)]
     L -- push --> O
     O -- Pull Request --> U
-```
