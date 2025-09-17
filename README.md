@@ -34,6 +34,6 @@
 ```mermaid
 flowchart LR
     U[원본 repo.<br/>(upstream)] -- fork --> O[개인 repo.<br/>(origin)]
-    U -- fetch/checkout --> L[로컬 저장소<br/>(local)]
+    U -- fetch/checkout --> L[로컬 저장소 (local)]
     L -- push --> O
     O -- Pull Request --> U
