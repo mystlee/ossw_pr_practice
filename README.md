@@ -12,6 +12,7 @@
 2. **Clone & Upstream 설정**  
    - fork한 레포를 로컬에 클론.  
    - 원본 레포를 `upstream`으로 등록
+   - fetch 진행
 
 3. **학번 브랜치로 이동**  
    - `students/<학번>` 브랜치를 체크아웃
