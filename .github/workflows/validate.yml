@@ -1,0 +1,58 @@
+name: Validate PR
+on: pull_request
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Extract student id from branch
+        shell: bash
+        run: |
+          BRANCH="${GITHUB_HEAD_REF:-${GITHUB_REF_NAME}}"
+          echo "BRANCH=$BRANCH"
+          # 브랜치명은 정확히 students/<학번> (학번은 6자리 이상 숫자)
+          SID=$(echo "$BRANCH" | sed -n 's#^students/\([0-9]\{6,\}\)$#\1#p')
+          if [ -z "$SID" ]; then
+            echo "❌ 브랜치명은 students/<학번> 형식이어야 합니다. 예) students/20231234"
+            exit 1
+          fi
+          echo "SID=$SID" >> $GITHUB_ENV
+
+      - name: Check changed files scope
+        shell: bash
+        run: |
+          base="${{ github.event.pull_request.base.sha }}"
+          head="${{ github.event.pull_request.head.sha }}"
+          files=$(git diff --name-only "$base" "$head" || true)
+          echo "$files" | sed "s/^/changed: /"
+
+          # 본인 폴더만 변경했는지 확인
+          bad=$(echo "$files" | grep -vE "^submissions/${SID}/" || true)
+          if [ -n "$bad" ]; then
+            echo "❌ 본인 폴더(submissions/${SID}/) 외 변경이 감지됨:"
+            echo "$bad"
+            exit 1
+          fi
+
+          # 최소 1개 파일은 변경되었는지
+          if [ -z "$files" ]; then
+            echo "❌ 변경 파일이 없습니다."
+            exit 1
+          fi
+
+          echo "✅ OK: only submissions/${SID}/ modified."
+
+      # (선택) 간단 테스트 훅: solution.py가 존재하는지
+      - name: Ensure solution exists
+        shell: bash
+        run: |
+          test -f "submissions/${SID}/solution.py" || {
+            echo "❌ submissions/${SID}/solution.py 가 존재하지 않습니다."
+            exit 1
+          }
+          echo "✅ solution.py found for ${SID}"
